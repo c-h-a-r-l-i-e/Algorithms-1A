@@ -39,7 +39,7 @@ public class SudokuSolver {
                 solution[row][col] = toIns;
                 try {
                     int newRow = row, newCol = col;
-                    //Find the next empty slot
+                    //Find the next empty slot nb 
                     while ((newRow == row && newCol == col) || (sudoku[newRow][newCol] != EMPTY)) {
                         newCol++;
                         if (newCol > 8) {

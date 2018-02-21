@@ -54,8 +54,19 @@ fun getKeys (Br(keys, children)) = keys;
 fun getSuccessor (Br(keys, Lf::xs)) pos = List.nth(keys, 0)
   | getSuccessor (Br(keys, children)) pos = getSuccessor (List.nth(children, pos + 1)) 0;
 	
+fun findAndDeleteBase Lf key = raise FailedDelete(0)
+  | findAndDeleteBase (Br(keys, children)) key = if key < List.nth(keys, 0) then Br(keys, [findAndDeleteBase (List.nth(children, 0)) key] @ (List.drop(children, 1)))
+		else if key = List.nth(keys, 0) then deleteBase (Br(keys, children)) 0
+		else if length(keys) < 2 orelse key < List.nth(keys, 1) then Br(keys, (List.take(children, 1) @ [findAndDeleteBase (List.nth(children, 1)) key] @ (List.drop(children, 2))))
+		else if key = List.nth(keys, 1) then deleteBase (Br(keys, children)) 0
+		else if length(keys) < 3 orelse key < List.nth(keys, 2) then Br(keys, (List.take(children, 2) @ [findAndDeleteBase (List.nth(children, 2)) key] @ (List.drop(children, 3))))
+		else if key = List.nth(keys, 2) then deleteBase (Br(keys, children)) 0
+		else Br(keys, (List.take(children, 3) @ [findAndDeleteBase (List.nth(children, 3)) key]))			
+			
+			
 
-fun deleteNotBase (Br(keys, children)) pos = let successor = getSuccessor (Br(keys, children)) pos in Br(List.take(keys, pos) @ [successor] @ List.drop(keys, pos + 1), delete (List.nth(children, pos + 1)) successor) end;
+fun deleteNotBase (Br(keys, children)) pos = let val successor = getSuccessor (Br(keys, children)) pos in Br(List.take(keys, pos) @ [successor] @ List.drop(keys, pos + 1),
+	List.take(children, pos + 1) @ [findAndDeleteBase (List.nth(children, pos + 1)) successor] @ List.drop(children, pos + 2)) end;
 	
 
 (*pos gives the position of the child to delete from, keypos the position of the key to delete within the child*)
@@ -63,9 +74,9 @@ fun deleteGeneral (Br(keys, children)) pos keypos = if isBase(List.nth(children,
 	then (Br(keys, List.take(children, pos) @ [deleteBase (List.nth(children, pos)) keypos] @ List.drop(children, pos + 1)) handle FailedDelete 1 => 
 		if length(keys) > 1
 			then replace (insertExplodes (List.nth(children, (if pos = 0 then 1 else pos - 1))) (List.nth(keys, (if pos = 0 then 1 else pos - 1)))) 
-				(Br(if pos = 0 then List.drop(keys, 1) else List.take(keys, pos - 1) @ List.drop(keys, pos), List.take(children, pos) @ List.drop(children, pos + 1))) 
-					(if pos = 0 then 1 else pos - 1))
-			else (*TODO: Case where child is now empty and parent only has one node*)
+				(Br((if pos = 0 then List.drop(keys, 1) else (List.take(keys, pos - 1) @ List.drop(keys, pos))), List.take(children, pos) @ List.drop(children, pos + 1))) 
+					(if pos = 0 then 1 else (pos - 1))
+			else Lf) (*TODO: Case where child is now empty and parent only has one node*)
 	else (Br(keys, List.take(children, pos) @ [deleteNotBase (List.nth(children, pos)) keypos] @ List.drop(children, pos + 1)));
 
 	
