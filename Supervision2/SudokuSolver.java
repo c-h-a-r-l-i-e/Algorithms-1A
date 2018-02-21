@@ -1,5 +1,3 @@
-package uk.ac.cam.cl.cm927.Strategies;
-
 import java.util.Arrays;
 
 public class SudokuSolver {

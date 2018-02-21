@@ -49,8 +49,14 @@ fun deleteBase (Br(keys, children)) pos = if length(keys) > 1 then Br(List.take(
 	
 fun getChildren (Br(keys, children)) = children;
 fun getKeys (Br(keys, children)) = keys;
+
+
+fun getSuccessor (Br(keys, Lf::xs)) pos = List.nth(keys, 0)
+  | getSuccessor (Br(keys, children)) pos = getSuccessor (List.nth(children, pos + 1)) 0;
 	
 
+fun deleteNotBase (Br(keys, children)) pos = let successor = getSuccessor (Br(keys, children)) pos in Br(List.take(keys, pos) @ [successor] @ List.drop(keys, pos + 1), delete (List.nth(children, pos + 1)) successor) end;
+	
 
 (*pos gives the position of the child to delete from, keypos the position of the key to delete within the child*)
 fun deleteGeneral (Br(keys, children)) pos keypos = if isBase(List.nth(children, pos)) 
@@ -60,7 +66,7 @@ fun deleteGeneral (Br(keys, children)) pos keypos = if isBase(List.nth(children,
 				(Br(if pos = 0 then List.drop(keys, 1) else List.take(keys, pos - 1) @ List.drop(keys, pos), List.take(children, pos) @ List.drop(children, pos + 1))) 
 					(if pos = 0 then 1 else pos - 1))
 			else (*TODO: Case where child is now empty and parent only has one node*)
-	else (**);
+	else (Br(keys, List.take(children, pos) @ [deleteNotBase (List.nth(children, pos)) keypos] @ List.drop(children, pos + 1)));
 
 	
 (*Recurses down and then calls deleteGeneral from the parent of the child containing the node we want to delete*)
